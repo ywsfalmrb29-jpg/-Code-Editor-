@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edman Code Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0a0a0f;
+  --panel:#14141f;
+  --panel-2:#1a1a28;
+  --border:#2a2a3e;
+  --blue:#3b82f6;
+  --blue-hover:#2563eb;
+  --green:#10b981;
+  --red:#ef4444;
+  --text:#e8e8f0;
+  --text-dim:#8a8a9e;
+}
+
+body{
+  font-family:'Cairo',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* الهيدر */
+header{
+  padding:15px 20px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.logo{
+  font-size:1.1rem;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.logo .icon{font-size:1.4rem}
+
+.header-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  padding:8px 16px;
+  border:none;
+  border-radius:8px;
+  font-family:'Cairo',sans-serif;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.btn-primary{
+  background:var(--blue);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--blue-hover);
+}
+
+.btn-secondary{
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+
+.btn-secondary:hover{
+  background:var(--border);
+}
+
+.btn-green{
+  background:var(--green);
+  color:#fff;
+}
+
+.btn-green:hover{
+  background:#059669;
+}
+
+.btn-red{
+  background:var(--red);
+  color:#fff;
+}
+
+.btn-red:hover{
+  background:#dc2626;
+}
+
+/* الحاوية الرئيسية */
+main{
+  padding:15px;
+  max-width:1400px;
+  margin:0 auto;
+}
+
+/* شريط التحكم */
+.control-bar{
+  padding:12px 15px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:15px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.control-bar label{
+  font-size:0.85rem;
+  color:var(--text-dim);
+  font-weight:600;
+}
+
+.control-bar select{
+  padding:8px 12px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Cairo',sans-serif;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  outline:none;
+  transition:all 0.2s;
+}
+
+.control-bar select:hover,
+.control-bar select:focus{
+  border-color:var(--blue);
+}
+
+/* شبكة المحرر */
+.editor-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-bottom:15px;
+  height:calc(100vh - 280px);
+  min-height:400px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.panel-header{
+  padding:10px 15px;
+  background:var(--panel-2);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.panel-title{
+  font-size:0.85rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.panel-actions{
+  display:flex;
+  gap:5px;
+}
+
+.mini-btn{
+  padding:4px 10px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text-dim);
+  font-family:'Cairo',sans-serif;
+  font-size:0.72rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.mini-btn:hover{
+  border-color:var(--blue);
+  color:var(--text);
+}
+
+/* المحرر */
+.code-editor{
+  flex:1;
+  width:100%;
+  padding:15px;
+  background:var(--bg);
+  border:none;
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.88rem;
+  line-height:1.7;
+  resize:none;
+  outline:none;
+  direction:ltr;
+  text-align:left;
+  tab-size:2;
+  white-space:pre;
+  overflow:auto;
+}
+
+.code-editor::-webkit-scrollbar{width:8px;height:8px}
+.code-editor::-webkit-scrollbar-track{background:rgba(0,0,0,0.3)}
+.code-editor::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+.code-editor::-webkit-scrollbar-thumb:hover{background:var(--blue)}
+
+/* تبويبات المعاينة */
+.preview-tabs{
+  display:flex;
+  gap:0;
+  background:var(--panel-2);
+  border-bottom:1px solid var(--border);
+}
+
+.preview-tab{
+  flex:1;
+  padding:10px;
+  background:transparent;
+  border:none;
+  color:var(--text-dim);
+  font-family:'Cairo',sans-serif;
+  font-size:0.82rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+  border-bottom:2px solid transparent;
+}
+
+.preview-tab:hover{
+  color:var(--text);
+}
+
+.preview-tab.active{
+  color:var(--blue);
+  border-bottom-color:var(--blue);
+  background:rgba(59,130,246,0.05);
+}
+
+/* المعاينة */
+.preview-frame{
+  flex:1;
+  width:100%;
+  border:none;
+  background:#fff;
+}
+
+/* Console */
+.console-area{
+  flex:1;
+  padding:15px;
+  background:var(--bg);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.85rem;
+  overflow-y:auto;
+  direction:ltr;
+  text-align:left;
+}
+
+.console-area::-webkit-scrollbar{width:8px}
+.console-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+
+.console-line{
+  padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  word-break:break-word;
+}
+
+.console-line.info{color:var(--blue)}
+.console-line.success{color:var(--green)}
+.console-line.error{color:var(--red)}
+
+.console-prompt{
+  color:var(--blue);
+  font-weight:700;
+  margin-left:6px;
+}
+
+/* لوحة المترجم */
+.translator{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px;
+  margin-bottom:15px;
+  display:none;
+}
+
+.translator.active{display:block}
+
+.translator h3{
+  margin-bottom:15px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:1.05rem;
+}
+
+.translator-grid{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:15px;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.translator-side{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.translator-side label{
+  font-size:0.8rem;
+  font-weight:700;
+  color:var(--text-dim);
+}
+
+.translator-side select,
+.translator-side textarea{
+  padding:10px 12px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Cairo',sans-serif;
+  font-size:0.85rem;
+  outline:none;
+  transition:all 0.2s;
+}
+
+.translator-side select:focus,
+.translator-side textarea:focus{
+  border-color:var(--blue);
+}
+
+.translator-side textarea{
+  font-family:'JetBrains Mono',monospace;
+  resize:vertical;
+  min-height:150px;
+  direction:ltr;
+  text-align:left;
+}
+
+.translator-arrow{
+  font-size:1.8rem;
+  color:var(--blue);
+  text-align:center;
+}
+
+.translator-btn{
+  padding:12px 30px;
+  background:var(--blue);
+  border:none;
+  border-radius:8px;
+  color:#fff;
+  font-family:'Cairo',sans-serif;
+  font-size:0.9rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:block;
+  margin:0 auto;
+}
+
+.translator-btn:hover{
+  background:var(--blue-hover);
+}
+
+/* التوست */
+.toast{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) translateY(100px);
+  padding:12px 24px;
+  background:var(--blue);
+  color:#fff;
+  border-radius:8px;
+  font-weight:700;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  z-index:1000;
+  transition:transform 0.3s;
+  font-size:0.88rem;
+}
+
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+/* الفوتر */
+footer{
+  padding:25px 20px;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  text-align:center;
+  margin-top:30px;
+}
+
+.footer-quote{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.9rem;
+  color:var(--text-dim);
+  line-height:1.9;
+  margin-bottom:20px;
+}
+
+.social-links{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+.social-link{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 16px;
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  border-radius:50px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:600;
+  font-size:0.82rem;
+  transition:all 0.2s;
+}
+
+.social-link:hover{
+  border-color:var(--blue);
+  color:var(--blue);
+}
+
+.copyright{
+  color:var(--text-dim);
+  font-size:0.8rem;
+}
+
+.copyright .brand{
+  color:var(--text);
+  font-weight:900;
+  font-size:1rem;
+  display:block;
+  margin-bottom:3px;
+}
+
+/* استجابة */
+@media (max-width:768px){
+  .editor-grid{
+    grid-template-columns:1fr;
+    height:auto;
+  }
+  
+  .panel{
+    min-height:320px;
+  }
+  
+  .translator-grid{
+    grid-template-columns:1fr;
+  }
+  
+  .translator-arrow{
+    transform:rotate(90deg);
+  }
+  
+  header{
+    padding:12px 15px;
+  }
+  
+  .logo{font-size:0.95rem}
+  
+  .btn{
+    padding:6px 12px;
+    font-size:0.78rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="icon">💻</span>
+    <span>Edman Code Editor</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="saveCode()">💾 حفظ</button>
+    <button class="btn btn-secondary" onclick="downloadCode()">📥 تحميل</button>
+    <button class="btn btn-secondary" onclick="copyCode()">📋 نسخ</button>
+    <button class="btn btn-red" onclick="clearCode()">🗑️ مسح</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- شريط التحكم -->
+  <div class="control-bar">
+    <label>اللغة:</label>
+    <select id="languageSelect" onchange="changeLanguage()">
+      <option value="html">🌐 HTML</option>
+      <option value="css">🎨 CSS</option>
+      <option value="javascript">⚡ JavaScript</option>
+      <option value="python">🐍 Python (محاكاة)</option>
+    </select>
+    
+    <button class="btn btn-green" onclick="runCode()">▶️ تشغيل</button>
+    <button class="btn btn-primary" onclick="toggleTranslator()">🔄 المترجم</button>
+  </div>
+
+  <!-- المحرر -->
+  <div class="editor-grid">
+    
+    <!-- المحرر -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📝</span>
+          <span id="langLabel">HTML</span>
+        </div>
+        <div class="panel-actions">
+          <button class="mini-btn" onclick="formatCode()">✨ تنسيق</button>
+        </div>
+      </div>
+      <textarea class="code-editor" id="codeEditor" spellcheck="false" placeholder="اكتب الكود هنا..."></textarea>
+    </div>
+
+    <!-- المعاينة -->
+    <div class="panel">
+      <div class="preview-tabs">
+        <button class="preview-tab active" onclick="switchView('preview', this)">👁️ المعاينة</button>
+        <button class="preview-tab" onclick="switchView('console', this)">💻 Console</button>
+      </div>
+      <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+      <div class="console-area" id="consoleArea" style="display:none">
+        <div class="console-line info">
+          <span class="console-prompt">›</span>
+          جاهز للتشغيل... اضغط "▶️ تشغيل" لبدء تنفيذ الكود
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- المترجم -->
+  <div class="translator" id="translatorPanel">
+    <h3>🔄 مترجم الأكواد</h3>
+    
+    <div class="translator-grid">
+      <div class="translator-side">
+        <label>من لغة</label>
+        <select id="fromLang">
+          <option value="javascript">⚡ JavaScript</option>
+          <option value="python">🐍 Python</option>
+          <option value="php">🐘 PHP</option>
+          <option value="java">☕ Java</option>
+        </select>
+        <textarea id="translateInput" placeholder="اكتب الكود هنا..."></textarea>
+      </div>
+      
+      <div class="translator-arrow">←</div>
+      
+      <div class="translator-side">
+        <label>إلى لغة</label>
+        <select id="toLang">
+          <option value="python">🐍 Python</option>
+          <option value="javascript">⚡ JavaScript</option>
+          <option value="php">🐘 PHP</option>
+          <option value="java">☕ Java</option>
+        </select>
+        <textarea id="translateOutput" placeholder="الترجمة هتظهر هنا..." readonly></textarea>
+      </div>
+    </div>
+    
+    <button class="translator-btn" onclick="translateCode()">🔄 ترجم الآن</button>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-quote">
+    Any fool can write code that a computer can understand.<br>
+    Good programmers write code that humans can understand.
+  </div>
+  
+  <div class="social-links">
+    <a href="https://www.youtube.com/@Edman_haking-i4f" target="_blank" class="social-link">
+      <span>▶️</span> يوتيوب
+    </a>
+    <a href="https://t.me/youssef7_HAKER" target="_blank" class="social-link">
+      <span>✈️</span> تليجرام
+    </a>
+    <a href="https://ywsfalmrb29-jpg.github.io/LEARN_HACK_EDMAN/" target="_blank" class="social-link">
+      <span>🌐</span> تعلم الأمن
+    </a>
+  </div>
+  
+  <div class="copyright">
+    <span class="brand">👑 Edman Haking 👑</span>
+    جميع الحقوق محفوظة © 2025
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================
+   EDMAN CODE EDITOR - JavaScript
+   ============================================ */
+
+let currentLang = 'html';
+
+/* ===== الكود الافتراضي ===== */
+const DEFAULT_CODES = {
+  html: `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>مرحباً</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+    }
+    h1 { font-size: 3rem; }
+  </style>
+</head>
+<body>
+  <h1>مرحباً بك 👋</h1>
+</body>
+</html>`,
+  
+  css: `body {
+  font-family: Arial, sans-serif;
+  background: #3b82f6;
+  padding: 20px;
+}
+
+h1 {
+  color: white;
+  font-size: 2rem;
+}
+
+button {
+  background: white;
+  color: #3b82f6;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}`,
+  
+  javascript: `console.log("مرحباً بك في محرر الأكواد");
+console.log("Edman Code Editor");
+
+const numbers = [1, 2, 3, 4, 5];
+const doubled = numbers.map(n => n * 2);
+console.log("الأرقام المضاعفة:", doubled);
+
+const sum = numbers.reduce((a, b) => a + b, 0);
+console.log("المجموع:", sum);
+
+function greet(name) {
+  return \`مرحباً \${name}!\`;
+}
+
+console.log(greet("أحمد"));`,
+  
+  python: `# مرحباً بك في Python
+print("مرحباً من Python!")
+
+numbers = [1, 2, 3, 4, 5]
+doubled = [n * 2 for n in numbers]
+print("الأرقام المضاعفة:", doubled)
+
+total = sum(numbers)
+print("المجموع:", total)
+
+def greet(name):
+    return f"مرحباً {name}!"
+
+print(greet("أحمد"))`
+};
+
+/* ===== الحصول على العناصر ===== */
+const codeEditor = document.getElementById('codeEditor');
+const previewFrame = document.getElementById('previewFrame');
+const consoleArea = document.getElementById('consoleArea');
+const languageSelect = document.getElementById('languageSelect');
+const langLabel = document.getElementById('langLabel');
+
+/* ===== تحميل الكود الافتراضي ===== */
+function loadDefaultCode() {
+  codeEditor.value = DEFAULT_CODES[currentLang] || '';
+}
+
+/* ===== تغيير اللغة ===== */
+function changeLanguage() {
+  const newLang = languageSelect.value;
+  
+  // حفظ الكود الحالي
+  if (codeEditor.value.trim()) {
+    const save = confirm('تحب تحفظ الكود الحالي قبل ما تغير اللغة؟');
+    if (save) saveCode();
+  }
+  
+  currentLang = newLang;
+  langLabel.textContent = currentLang.toUpperCase();
+  
+  // تحميل الكود الافتراضي
+  loadDefaultCode();
+  
+  // إضافة Tab للكتابة السريعة
+  applyTabBehavior();
+  
+  showToast('✅ تم تغيير اللغة إلى ' + currentLang.toUpperCase());
+}
+
+/* ===== تبديل العرض (معاينة / Console) ===== */
+function switchView(type, btn) {
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  
+  if (type === 'preview') {
+    previewFrame.style.display = 'block';
+    consoleArea.style.display = 'none';
+  } else {
+    previewFrame.style.display = 'none';
+    consoleArea.style.display = 'block';
+  }
+}
+
+/* ===== تشغيل الكود ===== */
+function runCode() {
+  const code = codeEditor.value;
+  
+  if (!code.trim()) {
+    showToast('❌ لا يوجد كود للتشغيل', 'error');
+    return;
+  }
+  
+  clearConsole();
+  
+  // HTML
+  if (currentLang === 'html') {
+    previewFrame.srcdoc = code;
+    printConsole('✅ تم عرض HTML بنجاح', 'success');
+    printConsole('📄 عدد الأسطر: ' + code.split('\n').length, 'info');
+  }
+  
+  // CSS
+  else if (currentLang === 'css') {
+    previewFrame.srcdoc = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <style>${code}</style>
+</head>
+<body>
+  <h1>عنوان تجريبي</h1>
+  <p>هذا نص للتجربة — يمكنك رؤية تأثير CSS عليه.</p>
+  <button>زر تجريبي</button>
+  <div class="box" style="padding:20px;margin:10px 0;">صندوق</div>
+  <a href="#">رابط تجريبي</a>
+</body>
+</html>`;
+    printConsole('✅ تم تطبيق CSS', 'success');
+  }
+  
+  // JavaScript
+  else if (currentLang === 'javascript') {
+    previewFrame.srcdoc = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>JS Output</title></head>
+<body style="background:#0a0a0f;color:#e8e8f0;font-family:monospace;padding:20px">
+  <h3 style="color:#3b82f6;margin-bottom:15px">📝 نتائج التنفيذ:</h3>
+  <pre id="output" style="background:#14141f;padding:15px;border-radius:8px;color:#10b981;white-space:pre-wrap;font-size:0.9rem"></pre>
+  <script>
+    const out = document.getElementById('output');
+    const origLog = console.log;
+    const origError = console.error;
+    const origWarn = console.warn;
+    
+    console.log = function(...args) {
+      const text = args.map(a => 
+        typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)
+      ).join(' ');
+      out.textContent += '✓ ' + text + '\\n';
+      origLog.apply(console, args);
+    };
+    
+    console.error = function(...args) {
+      const text = args.map(a => String(a)).join(' ');
+      out.textContent += '✗ ' + text + '\\n';
+      origError.apply(console, args);
+    };
+    
+    console.warn = function(...args) {
+      const text = args.map(a => String(a)).join(' ');
+      out.textContent += '⚠ ' + text + '\\n';
+      origWarn.apply(console, args);
+    };
+    
+    try {
+      ${code}
+    } catch(e) {
+      out.textContent += '❌ Error: ' + e.message + '\\n';
+    }
+  <\/script>
+</body>
+</html>`;
+    printConsole('✅ تم تنفيذ JavaScript', 'success');
+    printConsole('📄 عدد الأسطر: ' + code.split('\n').length, 'info');
+  }
+  
+  // Python (محاكاة)
+  else if (currentLang === 'python') {
+    printConsole('📝 الكود المكتوب بلغة Python', 'info');
+    printConsole('⚠️ Python مش بيعمل مباشرة في المتصفح', 'error');
+    printConsole('💡 للتشغيل: استخدم Pyodide أو شغّله على PythonAnywhere', 'info');
+    printConsole('', '');
+    printConsole('📊 إحصائيات الكود:', 'success');
+    printConsole('  • عدد الأسطر: ' + code.split('\n').length, 'success');
+    printConsole('  • عدد الأحرف: ' + code.length, 'success');
+    printConsole('  • عدد الدوال: ' + (code.match(/def\s+\w+/g) || []).length, 'success');
+    printConsole('  • عدد المتغيرات: ' + (code.match(/^\w+\s*=/gm) || []).length, 'success');
+    
+    // محاكاة بسيطة
+    const output = simulatePython(code);
+    if (output.length > 0) {
+      printConsole('', '');
+      printConsole('🎯 الناتج المتوقع:', 'success');
+      output.forEach(line => printConsole('  ' + line, 'success'));
+    }
+    
+    previewFrame.srcdoc = `<html>
+<body style="background:#0a0a0f;color:#8a8a9e;font-family:monospace;padding:20px;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;flex-direction:column">
+  <h2 style="color:#3b82f6">🐍 Python</h2>
+  <p style="margin-top:15px">هذه اللغة تحتاج مفسر خارجي</p>
+  <p style="margin-top:10px;color:#10b981">عدد الأسطر: ${code.split('\n').length}</p>
+  <p style="margin-top:10px;font-size:0.85rem">شغّل الكود على pythonanywhere.com</p>
+</body>
+</html>`;
+  }
+  
+  showToast('✅ تم التشغيل', 'success');
+}
+
+/* ===== محاكاة Python ===== */
+function simulatePython(code) {
+  const output = [];
+  
+  // استخراج print()
+  const printMatches = code.match(/print\s*\((.*?)\)/g) || [];
+  printMatches.forEach(match => {
+    let content = match.replace(/print\s*\(|\)/g, '').trim();
+    
+    // إزالة علامات التنصيص
+    content = content.replace(/^['"]|['"]$/g, '');
+    
+    // معالجة f-strings
+    content = content.replace(/\{(\w+)\}/g, '___');
+    
+    if (content && !content.includes('f"')) {
+      output.push(content);
+    }
+  });
+  
+  return output;
+}
+
+/* ===== Console ===== */
+function printConsole(text, type = 'info') {
+  const line = document.createElement('div');
+  line.className = 'console-line ' + type;
+  line.innerHTML = `<span class="console-prompt">›</span> ${text}`;
+  consoleArea.appendChild(line);
+  consoleArea.scrollTop = consoleArea.scrollHeight;
+}
+
+function clearConsole() {
+  consoleArea.innerHTML = '';
+}
+
+/* ===== تنسيق الكود ===== */
+function formatCode() {
+  const code = codeEditor.value;
+  if (!code.trim()) {
+    showToast('❌ مفيش كود للتنسيق', 'error');
+    return;
+  }
+  
+  let formatted = code;
+  
+  // HTML: تنسيق بسيط
+  if (currentLang === 'html') {
+    formatted = code
+      .replace(/></g, '>\n<')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line)
+      .reduce((acc, line, i) => {
+        const prevLine = acc[acc.length - 1] || '';
+        const isClosing = line.startsWith('</');
+        const prevIsOpening = prevLine && !prevLine.startsWith('</') && !prevLine.endsWith('/>');
+        const indent = isClosing ? Math.max(0, (prevLine ? prevLine.search(/\S/) : 0) - 2) : 0;
+        return acc.concat(' '.repeat(indent) + line);
+      }, [])
+      .join('\n');
+  }
+  
+  // CSS
+  else if (currentLang === 'css') {
+    formatted = code
+      .replace(/\s*{\s*/g, ' {\n  ')
+      .replace(/;\s*/g, ';\n  ')
+      .replace(/\s*}\s*/g, '\n}\n')
+      .replace(/\n\s*\n/g, '\n');
+  }
+  
+  // JS
+  else if (currentLang === 'javascript') {
+    formatted = code
+      .replace(/;\s*/g, ';\n')
+      .replace(/\{\s*/g, ' {\n  ')
+      .replace(/\}\s*/g, '\n}\n')
+      .replace(/\n\s*\n/g, '\n');
+  }
+  
+  codeEditor.value = formatted;
+  showToast('✨ تم التنسيق', 'success');
+}
+
+/* ===== حفظ الكود ===== */
+function saveCode() {
+  const code = codeEditor.value;
+  if (!code.trim()) {
+    showToast('❌ مفيش كود للحفظ', 'error');
+    return;
+  }
+  
+  localStorage.setItem('edman_code', code);
+  localStorage.setItem('edman_lang', currentLang);
+  localStorage.setItem('edman_time', Date.now());
+  showToast('💾 تم الحفظ', 'success');
+}
+
+function loadSavedCode() {
+  const saved = localStorage.getItem('edman_code');
+  const lang = localStorage.getItem('edman_lang');
+  
+  if (saved) {
+    if (confirm('في كود محفوظ — تحب تحمله؟')) {
+      codeEditor.value = saved;
+      if (lang) {
+        currentLang = lang;
+        languageSelect.value = lang;
+        langLabel.textContent = lang.toUpperCase();
+      }
+      showToast('📂 تم التحميل', 'success');
+    } else {
+      loadDefaultCode();
+    }
+  } else {
+    loadDefaultCode();
+  }
+}
+
+/* ===== نسخ الكود ===== */
+function copyCode() {
+  const code = codeEditor.value;
+  if (!code.trim()) {
+    showToast('❌ مفيش كود للنسخ', 'error');
+    return;
+  }
+  
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('📋 تم النسخ', 'success');
+  }).catch(() => {
+    codeEditor.select();
+    document.execCommand('copy');
+    showToast('📋 تم النسخ', 'success');
+  });
+}
+
+/* ===== تحميل الكود كملف ===== */
+function downloadCode() {
+  const code = codeEditor.value;
+  if (!code.trim()) {
+    showToast('❌ مفيش كود للتحميل', 'error');
+    return;
+  }
+  
+  const extensions = {
+    html: 'html',
+    css: 'css',
+    javascript: 'js',
+    python: 'py'
+  };
+  
+  const ext = extensions[currentLang] || 'txt';
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'code-' + Date.now() + '.' + ext;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 تم التحميل', 'success');
+}
+
+/* ===== مسح الكود ===== */
+function clearCode() {
+  if (!confirm('متأكد إنك عايز تمسح الكود؟')) return;
+  codeEditor.value = '';
+  clearConsole();
+  previewFrame.srcdoc = '';
+  showToast('🗑️ تم المسح', 'success');
+}
+
+/* ===== المترجم ===== */
+function toggleTranslator() {
+  const panel = document.getElementById('translatorPanel');
+  panel.classList.toggle('active');
+  
+  if (panel.classList.contains('active')) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+/* ===== ترجمة الأكواد ===== */
+function translateCode() {
+  const from = document.getElementById('fromLang').value;
+  const to = document.getElementById('toLang').value;
+  const input = document.getElementById('translateInput').value.trim();
+  const output = document.getElementById('translateOutput');
+  
+  if (!input) {
+    showToast('❌ اكتب كود أولاً', 'error');
+    return;
+  }
+  
+  if (from === to) {
+    showToast('⚠️ نفس اللغة', 'error');
+    return;
+  }
+  
+  const translated = performTranslation(input, from, to);
+  output.value = translated;
+  showToast('✅ تمت الترجمة', 'success');
+}
+
+function performTranslation(code, from, to) {
+  let result = code;
+  let lines = result.split('\n');
+  
+  // Python → JavaScript
+  if (from === 'python' && to === 'javascript') {
+    lines = lines.map(line => {
+      // print → console.log
+      line = line.replace(/print\s*\((.*?)\)/g, 'console.log($1);');
+      
+      // def → function
+      line = line.replace(/def\s+(\w+)\s*\((.*?)\)\s*:/g, 'function $1($2) {');
+      
+      // if → if
+      line = line.replace(/if\s+(.*?):/g, 'if ($1) {');
+      
+      // else:
+      line = line.replace(/^(\s*)else\s*:/g, '$1} else {');
+      
+      // إزالة التعليقات #
+      line = line.replace(/#(.*)$/g, '//$1');
+      
+      return line;
+    });
+    result = lines.join('\n');
+    
+    // إضافة قوس إغلاق
+    if (result.includes('function')) {
+      result += '\n}';
+    }
+  }
+  
+  // JavaScript → Python
+  else if (from === 'javascript' && to === 'python') {
+    lines = lines.map(line => {
+      // console.log → print
+      line = line.replace(/console\.log\s*\((.*?)\);?/g, 'print($1)');
+      
+      // function → def
+      line = line.replace(/function\s+(\w+)\s*\((.*?)\)\s*\{/g, 'def $1($2):');
+      
+      // if
+      line = line.replace(/if\s*\((.*?)\)\s*\{/g, 'if $1:');
+      
+      // let/const → (شيلهم)
+      line = line.replace(/^\s*(let|const|var)\s+/g, '');
+      
+      // // → #
+      line = line.replace(/\/\/(.*)$/g, '#$1');
+      
+      return line;
+    });
+    result = lines.join('\n');
+  }
+  
+  // Python ↔ PHP
+  else if (from === 'python' && to === 'php') {
+    lines = lines.map(line => {
+      line = line.replace(/print\s*\((.*?)\)/g, 'echo $1;');
+      line = line.replace(/def\s+(\w+)\s*\((.*?)\)\s*:/g, 'function $1($2) {');
+      line = line.replace(/#(.*)$/g, '//$1');
+      return line;
+    });
+    result = '<?php\n' + lines.join('\n') + '\n?>';
+  }
+  
+  // JavaScript → PHP
+  else if (from === 'javascript' && to === 'php') {
+    lines = lines.map(line => {
+      line = line.replace(/console\.log\s*\((.*?)\);?/g, 'echo $1;');
+      line = line.replace(/let\s+|const\s+|var\s+/g, '$');
+      line = line.replace(/\/\/(.*)$/g, '//$1');
+      return line;
+    });
+    result = '<?php\n' + lines.join('\n') + '\n?>';
+  }
+  
+  // Python ↔ Java
+  else if (from === 'python' && to === 'java') {
+    lines = lines.map(line => {
+      line = line.replace(/print\s*\((.*?)\)/g, 'System.out.println($1);');
+      line = line.replace(/def\s+(\w+)\s*\((.*?)\)\s*:/g, 'public static void $1() {');
+      line = line.replace(/#(.*)$/g, '//$1');
+      return line;
+    });
+    result = lines.join('\n');
+  }
+  
+  // JavaScript → Java
+  else if (from === 'javascript' && to === 'java') {
+    lines = lines.map(line => {
+      line = line.replace(/console\.log\s*\((.*?)\);?/g, 'System.out.println($1);');
+      line = line.replace(/function\s+(\w+)\s*\((.*?)\)\s*\{/g, 'public static void $1() {');
+      return line;
+    });
+    result = lines.join('\n');
+  }
+  
+  // إضافة تعليق في الأول
+  const header = `// Translated from ${from.toUpperCase()} to ${to.toUpperCase()}\n// Generated by Edman Code Editor\n// ${new Date().toLocaleString('ar-EG')}\n\n`;
+  result = header + result;
+  
+  return result;
+}
+
+/* ===== سلوك زر Tab ===== */
+function applyTabBehavior() {
+  codeEditor.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = start + 2;
+    }
+  });
+}
+
+/* ===== التوست ===== */
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + type;
+  
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.className = 'toast';
+  }, 2500);
+}
+
+/* ===== اختصارات لوحة المفاتيح ===== */
+document.addEventListener('keydown', (e) => {
+  // Ctrl+S = حفظ
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveCode();
+  }
+  // Ctrl+Enter = تشغيل
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+});
+
+/* ===== التشغيل ===== */
+window.addEventListener('load', () => {
+  loadSavedCode();
+  applyTabBehavior();
+  console.log('👑 Edman Code Editor Ready!');
+  console.log('⌨️ Shortcuts: Ctrl+S (Save), Ctrl+Enter (Run)');
+});
+</script>
+</body>
+</html>
